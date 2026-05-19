@@ -919,7 +919,7 @@ function SearchScreen({ go, setState, onClose, mergeSearch }) {
             </div>
             <div style={{ position: 'relative', width: '100%', height: 6, background: 'rgba(10,10,10,0.1)', borderRadius: 6 }}>
               <div style={{
-                position: 'absolute', left: 0, top: 0, bottom: 0, width: '25%',
+                position: 'absolute', left: 0, top: 0, bottom: 0, width: `${progressForStep('search')}%`,
                 background: 'linear-gradient(90deg, #133595 0%, #135CFF 100%)',
                 borderRadius: 6
               }} />
@@ -1302,6 +1302,19 @@ function ConcernScreen({ go, state, setState, onClose }) {
 }
 
 // ═════════════════════════════════════════════════════════════
+// Progress-bar driver
+// ═════════════════════════════════════════════════════════════
+// Each visible booking-flow screen owns one step. The bar is driven by
+// step-index / total-steps so removing or adding a step automatically
+// rescales — no hardcoded widths per screen.
+const BOOKING_STEPS = ['search', 'attach', 'time-of-day'];
+function progressForStep(name) {
+  const idx = BOOKING_STEPS.indexOf(name);
+  if (idx < 0) return 0;
+  return Math.round(100 * (idx + 1) / BOOKING_STEPS.length);
+}
+
+// ═════════════════════════════════════════════════════════════
 // 06 — Attach file
 // ═════════════════════════════════════════════════════════════
 function BookingShell({ go, onClose, progress, breadcrumb, children, footer }) {
@@ -1382,14 +1395,14 @@ function AttachScreen({ go, state, onClose }) {
   return (
     <BookingShell
       go={go} onClose={onClose}
-      progress={50}
+      progress={progressForStep('attach')}
       breadcrumb={
         <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3, minWidth: 0, width: '100%' }}>
           <span style={{ color: '#030712', fontWeight: 600 }}>Booking details</span>
           <span style={{ color: '#4B5563', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(state?.member || 'Test Demo User')}{state?.concern ? ' · ' + state.concern : ''}</span>
         </span>
       }
-      footer={<PillCTA onClick={() => go('clinician-type')}>{file ? 'Continue' : 'Skip for now'}</PillCTA>}>
+      footer={<PillCTA onClick={() => go('time-of-day')}>{file ? 'Continue' : 'Skip for now'}</PillCTA>}>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
         <div style={{ fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 16, lineHeight: '24px', color: '#030712' }}>
@@ -1468,13 +1481,15 @@ function AttachScreen({ go, state, onClose }) {
     </BookingShell>);
 }
 
-// ═════════════════════════════════════════════════════════════
-// 07 — Select clinician type
-// ═════════════════════════════════════════════════════════════
+// Epsilon: the standalone clinician-type SCREEN is removed (flow goes
+// straight from "attach" to "time-of-day"), and the recommendation is
+// surfaced inline on the time-selection screen. The type bottom-SHEET
+// is still available behind the filter pill so the patient can override
+// the default to GP/MHP/Physio if they want.
 const CLINICIAN_TYPE_OPTIONS = [
   {
     id: 'ACP',
-    title: 'Advanced Clinician',
+    title: 'Advanced Clinical Practitioner',
     summary: 'Everyday issues, prescriptions, fit notes, and more.',
     intro: 'Highly experienced clinicians registered with the Nursing and Midwifery Council (NMC) or the Health and Care Professions Council (HCPC).',
     can: [
@@ -1485,9 +1500,9 @@ const CLINICIAN_TYPE_OPTIONS = [
   },
   {
     id: 'Doctors',
-    title: 'GP (Doctor)',
+    title: 'Doctor',
     summary: 'Complex conditions, prescriptions, referrals, and more.',
-    intro: 'Fully qualified, General Medical Council (GMC) registered doctors. Useful when you want a doctor specifically, or when an ACP refers you on.',
+    intro: 'Fully qualified, General Medical Council (GMC) registered doctors. Useful when you want a doctor specifically, or when an Advanced Clinical Practitioner refers you on.',
     can: [
       'Diagnose and treat complex medical conditions',
       'Prescribe medication',
@@ -1517,102 +1532,6 @@ const CLINICIAN_TYPE_OPTIONS = [
       'Provide ongoing recovery support']
   }];
 
-// Map category id → recommended clinician-type id.
-// Heart Health routes to a GP; every other concern defaults to ACP
-// (Advanced Clinician) — see getRecommendedType fallback below.
-const RECOMMEND_BY_CAT = {
-  heart: 'Doctors',
-};
-
-function getRecommendedType(state) {
-  const cat = CATEGORIES.find((c) => c.name === state?.category);
-  return (cat && RECOMMEND_BY_CAT[cat.id]) || 'ACP';
-}
-
-function ClinicianTypeScreen({ go, state, setState, onClose }) {
-  const recommendedId = getRecommendedType(state);
-  const [selected, setSelected] = React.useState(recommendedId);
-  // Per-card "What they do" toggle — recommended is open by default.
-  const [openCard, setOpenCard] = React.useState({ [recommendedId]: true });
-  // "Other clinician types" disclosure — false by default per spec.
-  const [showOthers, setShowOthers] = React.useState(false);
-
-  const concern = state?.concern || 'your concern';
-  const recommendedMeta = CLINICIAN_TYPE_OPTIONS.find((o) => o.id === recommendedId);
-  const others = CLINICIAN_TYPE_OPTIONS.filter((o) => o.id !== recommendedId);
-  const article = /^[aeiou]/i.test(recommendedMeta?.title || '') ? 'an' : 'a';
-  const selectedMeta = CLINICIAN_TYPE_OPTIONS.find((o) => o.id === selected);
-
-  const onContinue = () => {
-    setState((s) => ({ ...s, clinicianType: selected }));
-    go('time-of-day');
-  };
-
-  return (
-    <BookingShell
-      go={go} onClose={onClose}
-      progress={75}
-      breadcrumb={
-        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3, minWidth: 0, width: '100%' }}>
-          <span style={{ color: '#030712', fontWeight: 600 }}>Booking details</span>
-          <span style={{ color: '#4B5563', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{(state?.member || 'Test Demo User')}{state?.concern ? ' · ' + state.concern : ''}</span>
-        </span>
-      }
-      footer={<PillCTA onClick={onContinue}>{`Continue with ${selectedMeta?.title || 'this clinician'}`}</PillCTA>}>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%' }}>
-        <div style={{ fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 16, lineHeight: '24px', color: '#030712' }}>
-          How can we help?
-        </div>
-        <div style={{ fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px', color: '#4B5563' }}>
-          For <strong style={{ color: '#030712', fontWeight: 600 }}>{concern}</strong>, we recommend booking an appointment with {article} <strong style={{ color: '#030712', fontWeight: 600 }}>{recommendedMeta?.title}</strong> — they're also likely to be available sooner.
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', paddingTop: 8 }}>
-        {/* Recommended card */}
-        <ClinicianTypeCard
-          meta={recommendedMeta}
-          recommended
-          selected={selected === recommendedMeta.id}
-          expanded={!!openCard[recommendedMeta.id]}
-          onSelect={() => setSelected(recommendedMeta.id)}
-          onToggle={() => setOpenCard((e) => ({ ...e, [recommendedMeta.id]: !e[recommendedMeta.id] }))} />
-
-        {/* Other clinician types disclosure */}
-        <button
-          onClick={() => setShowOthers((v) => !v)}
-          aria-expanded={showOthers}
-          style={{
-            all: 'unset', cursor: 'pointer',
-            display: 'inline-flex', alignItems: 'center', gap: 4,
-            fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
-            color: 'var(--dca-primary)'
-          }}>
-          Other clinician types
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-            style={{ transform: showOthers ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }}>
-            <path d="M4 6l4 4 4-4" stroke="var(--dca-primary)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
-
-        {showOthers &&
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {others.map((meta) =>
-          <ClinicianTypeCard
-            key={meta.id}
-            meta={meta}
-            selected={selected === meta.id}
-            expanded={!!openCard[meta.id]}
-            onSelect={() => setSelected(meta.id)}
-            onToggle={() => setOpenCard((e) => ({ ...e, [meta.id]: !e[meta.id] }))} />
-          )}
-          </div>
-        }
-      </div>
-    </BookingShell>);
-}
-
 function ClinicianTypeCard({ meta, recommended, selected, expanded, onSelect, onToggle }) {
   return (
     <div data-dca-card style={{
@@ -1631,25 +1550,22 @@ function ClinicianTypeCard({ meta, recommended, selected, expanded, onSelect, on
         padding: '2px 8px', height: 18,
         background: 'var(--dca-primary)', borderRadius: 9999
       }}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M6 1l1.2 3.2L10.5 5l-2.8 1.6L6 10 4.3 6.6 1.5 5l3.3-.8L6 1z" stroke="var(--dca-tint)" strokeWidth="1.1" strokeLinejoin="round" />
-          </svg>
-          <span style={{
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M6 1l1.2 3.2L10.5 5l-2.8 1.6L6 10 4.3 6.6 1.5 5l3.3-.8L6 1z" stroke="var(--dca-tint)" strokeWidth="1.1" strokeLinejoin="round" />
+        </svg>
+        <span style={{
           fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 11, lineHeight: '14px',
           color: 'var(--dca-tint)'
         }}>Recommended</span>
-        </div>
+      </div>
       }
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Title */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{
             fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 14, lineHeight: '20px',
             color: 'var(--dca-primary)'
           }}>{meta.title}</div>
-
-          {/* "Can do" summary row */}
           <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 2 }}>
               <path d="M3.5 8.5l3 3 6-6.5" stroke="#166534" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -1660,8 +1576,6 @@ function ClinicianTypeCard({ meta, recommended, selected, expanded, onSelect, on
               color: '#030712'
             }}>{meta.summary}</div>
           </div>
-
-          {/* "What they do" toggle */}
           <button
             onClick={onToggle}
             aria-expanded={expanded}
@@ -1671,7 +1585,7 @@ function ClinicianTypeCard({ meta, recommended, selected, expanded, onSelect, on
               fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
               color: 'var(--dca-primary)'
             }}>
-            See what they do
+            What they do
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
               style={{ transform: expanded ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }}>
               <path d="M4 6l4 4 4-4" stroke="var(--dca-primary)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
@@ -1679,31 +1593,29 @@ function ClinicianTypeCard({ meta, recommended, selected, expanded, onSelect, on
           </button>
         </div>
 
-        {/* Expanded detail */}
         {expanded &&
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {meta.intro &&
-          <div style={{
-            fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
-            color: '#030712'
-          }}>{meta.intro}</div>
-          }
+          {meta.intro &&
             <div style={{
+              fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
+              color: '#030712'
+            }}>{meta.intro}</div>
+          }
+          <div style={{
             fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
             color: '#030712'
           }}>They can:</div>
-            <ul style={{ margin: 0, paddingLeft: 18, listStyle: 'disc', display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {meta.can.map((line) =>
-            <li key={line} style={{
-              fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
-              color: '#030712'
-            }}>{line}</li>
+          <ul style={{ margin: 0, paddingLeft: 18, listStyle: 'disc', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {meta.can.map((line) =>
+              <li key={line} style={{
+                fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
+                color: '#030712'
+              }}>{line}</li>
             )}
-            </ul>
-          </div>
+          </ul>
+        </div>
         }
 
-        {/* Select / Selected button */}
         <button
           onClick={onSelect}
           style={{
@@ -1719,7 +1631,7 @@ function ClinicianTypeCard({ meta, recommended, selected, expanded, onSelect, on
           }}>
           <span>{selected ? 'Selected' : 'Select'}</span>
           {selected &&
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M1.5 8.5l3 3 6-6.5M6.5 11.5l3 3 6-6.5" stroke="var(--dca-tint)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           }
@@ -1728,9 +1640,106 @@ function ClinicianTypeCard({ meta, recommended, selected, expanded, onSelect, on
     </div>);
 }
 
+function ClinicianTypeSheet({ value, concern, onChange, onAutoClose }) {
+  const [showOthers, setShowOthers] = React.useState(value !== 'ACP');
+  const [openCard, setOpenCard] = React.useState({ ACP: true });
+  const timer = React.useRef(null);
+  React.useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const select = (v) => {
+    onChange(v);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => { if (onAutoClose) onAutoClose(v); }, 800);
+  };
+
+  const recommended = CLINICIAN_TYPE_OPTIONS.find((o) => o.id === 'ACP');
+  const others = CLINICIAN_TYPE_OPTIONS.filter((o) => o.id !== 'ACP');
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{
+        fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
+        color: '#4B5563'
+      }}>
+        For <strong style={{ color: '#030712', fontWeight: 600 }}>{concern || 'your concern'}</strong>, we recommend
+        booking an appointment with an <strong style={{ color: '#030712', fontWeight: 600 }}>Advanced Clinical Practitioner</strong> —
+        they're also likely to have better availability.
+      </div>
+      <ClinicianTypeCard
+        meta={recommended}
+        recommended
+        selected={value === recommended.id}
+        expanded={!!openCard[recommended.id]}
+        onSelect={() => select(recommended.id)}
+        onToggle={() => setOpenCard((e) => ({ ...e, [recommended.id]: !e[recommended.id] }))} />
+      <button
+        onClick={() => setShowOthers((v) => !v)}
+        aria-expanded={showOthers}
+        style={{
+          all: 'unset', cursor: 'pointer', alignSelf: 'flex-start',
+          display: 'inline-flex', alignItems: 'center', gap: 4,
+          fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
+          color: 'var(--dca-primary)'
+        }}>
+        Other clinician types
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+          style={{ transform: showOthers ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }}>
+          <path d="M4 6l4 4 4-4" stroke="var(--dca-primary)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {showOthers &&
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {others.map((meta) =>
+            <ClinicianTypeCard
+              key={meta.id}
+              meta={meta}
+              selected={value === meta.id}
+              expanded={!!openCard[meta.id]}
+              onSelect={() => select(meta.id)}
+              onToggle={() => setOpenCard((e) => ({ ...e, [meta.id]: !e[meta.id] }))} />
+          )}
+        </div>
+      }
+    </div>);
+}
+
 // ═════════════════════════════════════════════════════════════
-// 08 — When would you like your appointment? (time-of-day bands)
+// 07 — When would you like your appointment? (time-of-day bands)
 // ═════════════════════════════════════════════════════════════
+
+// Auto-assigned clinician per (clinician type, gender) filter. The
+// patient can't pick a clinician in epsilon — they meet who they've
+// been assigned on the confirmation screen. Each entry carries a
+// `roleLabel` for display so we don't have to look it up later.
+const ACP_BIO = 'Has over a decade of experience supporting patients with skin concerns. Focuses on practical, evidence-based advice and shared decision-making.';
+const GP_BIO = 'A senior GMC-registered GP, experienced in complex and longer-term medical conditions. Takes a thorough, patient-led approach to care.';
+const MHP_BIO = 'A first-line mental health professional. Skilled in assessing needs and shaping a clear plan for talking therapies or onward referral.';
+const PHYSIO_BIO = 'A chartered physiotherapist focused on musculoskeletal care. Builds tailored exercise programmes and refers on for imaging when needed.';
+const ASSIGNED_CLINICIAN_BY_TYPE = {
+  ACP: {
+    any:    { id: 'asg-acp-jane',  first: 'Jane',  name: 'Jane Doe',    role: 'ACP', roleLabel: 'Advanced Clinical Practitioner', img: 'assets/doc-jane.png',  joined: 'June 2025',    rating: 4.9, reviews: 120, bio: 'Jane ' + ACP_BIO },
+    female: { id: 'asg-acp-jane',  first: 'Jane',  name: 'Jane Doe',    role: 'ACP', roleLabel: 'Advanced Clinical Practitioner', img: 'assets/doc-jane.png',  joined: 'June 2025',    rating: 4.9, reviews: 120, bio: 'Jane ' + ACP_BIO },
+    male:   { id: 'asg-acp-simon', first: 'Simon', name: 'Simon Hart',  role: 'ACP', roleLabel: 'Advanced Clinical Practitioner', img: 'assets/doc-simon.png', joined: 'January 2023', rating: 4.9, reviews: 120, bio: 'Simon ' + ACP_BIO },
+  },
+  Doctors: {
+    any:    { id: 'asg-gp-sarah',  first: 'Sarah', name: 'Dr. Sarah Williams', role: 'Doctor', roleLabel: 'Doctor', img: 'assets/doc-sarah.png',   joined: 'March 2022',     rating: 4.8, reviews: 210, bio: 'Sarah ' + GP_BIO },
+    female: { id: 'asg-gp-sarah',  first: 'Sarah', name: 'Dr. Sarah Williams', role: 'Doctor', roleLabel: 'Doctor', img: 'assets/doc-sarah.png',   joined: 'March 2022',     rating: 4.8, reviews: 210, bio: 'Sarah ' + GP_BIO },
+    male:   { id: 'asg-gp-james',  first: 'James', name: 'Dr. James Carter',   role: 'Doctor', roleLabel: 'Doctor', img: 'assets/doc-john.png',    joined: 'September 2021', rating: 4.8, reviews: 198, bio: 'James ' + GP_BIO },
+  },
+  'Mental health practitioners': {
+    any:    { id: 'asg-mhp-alex',  first: 'Alex',  name: 'Alex Morgan', role: 'MHP', roleLabel: 'Mental Health Practitioner', img: 'assets/doc-anna.png',    joined: 'May 2024',     rating: 4.7, reviews: 88,  bio: 'Alex ' + MHP_BIO },
+    female: { id: 'asg-mhp-lisa',  first: 'Lisa',  name: 'Lisa Reid',   role: 'MHP', roleLabel: 'Mental Health Practitioner', img: 'assets/doc-emma.png',    joined: 'August 2023',  rating: 4.7, reviews: 95,  bio: 'Lisa ' + MHP_BIO },
+    male:   { id: 'asg-mhp-mark',  first: 'Mark',  name: 'Mark Field',  role: 'MHP', roleLabel: 'Mental Health Practitioner', img: 'assets/doc-michael.png', joined: 'January 2024', rating: 4.7, reviews: 76,  bio: 'Mark ' + MHP_BIO },
+  },
+  Physiotherapists: {
+    any:    { id: 'asg-phys-tom',  first: 'Tom',   name: 'Tom Reeves',  role: 'Physio', roleLabel: 'Physiotherapist', img: 'assets/doc-john.png',   joined: 'February 2024', rating: 4.8, reviews: 64, bio: 'Tom ' + PHYSIO_BIO },
+    female: { id: 'asg-phys-meg',  first: 'Megan', name: 'Megan Hill',  role: 'Physio', roleLabel: 'Physiotherapist', img: 'assets/doc-rachel.png', joined: 'November 2023', rating: 4.8, reviews: 71, bio: 'Megan ' + PHYSIO_BIO },
+    male:   { id: 'asg-phys-tom',  first: 'Tom',   name: 'Tom Reeves',  role: 'Physio', roleLabel: 'Physiotherapist', img: 'assets/doc-john.png',   joined: 'February 2024', rating: 4.8, reviews: 64, bio: 'Tom ' + PHYSIO_BIO },
+  },
+};
+function assignClinician(type, gender) {
+  const byGender = ASSIGNED_CLINICIAN_BY_TYPE[type] || ASSIGNED_CLINICIAN_BY_TYPE.ACP;
+  return byGender[gender] || byGender.any;
+}
 
 // Prototype "now" — pinned so the UX is reproducible regardless of wall clock.
 // Tue 19 May 2026, 17:00 (local).
@@ -1770,7 +1779,7 @@ const TIME_BANDS = [
   { id: 'morning',   label: 'Morning (7am – 12pm)',         start: 7,  end: 12 },
   { id: 'afternoon', label: 'Afternoon (12pm – 5pm)',       start: 12, end: 17 },
   { id: 'evening',   label: 'Evening (5pm – Midnight)',     start: 17, end: 24 },
-  { id: 'overnight', label: 'Overnight (12am – 7am)',        start: 0,  end: 7  }];
+  { id: 'overnight', label: 'Overnight (Midnight – 7am)',    start: 0,  end: 7  }];
 
 // The actual Date a slot represents. Overnight slots roll into the NEXT day.
 function slotDate(currentDay, band, h, m) {
@@ -1818,16 +1827,10 @@ function fmtDayPillLabel(date, idx) {
   return `${day}, ${dom} ${mon}`;
 }
 
-// Dynamic band heading that shows the cross-midnight date for the overnight
-// band: "Tonight after midnight (12am – 7am Wed)" when today is selected, or
-// "Overnight (12am – 7am Thu)" otherwise.
-function getBandLabel(band, currentDay, dayIdx) {
-  if (band.id === 'overnight') {
-    const next = addDays(currentDay, 1);
-    const nd = DAYS_SHORT[next.getDay()];
-    if (dayIdx === 0) return `Tonight after midnight (12am – 7am ${nd})`;
-    return `Overnight (12am – 7am ${nd})`;
-  }
+// Band heading. Static per band — the date tabs above the bands already
+// communicate which day the user is browsing, so the band label doesn't
+// need to repeat it.
+function getBandLabel(band) {
   return band.label;
 }
 
@@ -1981,70 +1984,6 @@ function ApptKindSheet({ value, onChange }) {
     </div>);
 }
 
-function ClinicianTypeSheet({ value, concern, onChange, onAutoClose }) {
-  const [showOthers, setShowOthers] = React.useState(value !== 'ACP');
-  const [openCard, setOpenCard] = React.useState({ ACP: true });
-  const timer = React.useRef(null);
-  React.useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-
-  // Tap "Select" → preview the change immediately, then after 800ms auto-close
-  // + commit. Tapping outside / dragging before then commits early.
-  const select = (v) => {
-    onChange(v);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => { if (onAutoClose) onAutoClose(v); }, 800);
-  };
-
-  const recommended = CLINICIAN_TYPE_OPTIONS.find((o) => o.id === 'ACP');
-  const others = CLINICIAN_TYPE_OPTIONS.filter((o) => o.id !== 'ACP');
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{
-        fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
-        color: '#4B5563'
-      }}>
-        For <strong style={{ color: '#030712', fontWeight: 600 }}>{concern || 'your concern'}</strong>, we recommend
-        booking an appointment with an <strong style={{ color: '#030712', fontWeight: 600 }}>Advanced Clinician</strong> —
-        they're also likely to have better availability.
-      </div>
-      <ClinicianTypeCard
-        meta={recommended}
-        recommended
-        selected={value === recommended.id}
-        expanded={!!openCard[recommended.id]}
-        onSelect={() => select(recommended.id)}
-        onToggle={() => setOpenCard((e) => ({ ...e, [recommended.id]: !e[recommended.id] }))} />
-      <button
-        onClick={() => setShowOthers((v) => !v)}
-        aria-expanded={showOthers}
-        style={{
-          all: 'unset', cursor: 'pointer', alignSelf: 'flex-start',
-          display: 'inline-flex', alignItems: 'center', gap: 4,
-          fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
-          color: 'var(--dca-primary)'
-        }}>
-        Other clinician types
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-          style={{ transform: showOthers ? 'rotate(180deg)' : 'none', transition: 'transform 150ms ease' }}>
-          <path d="M4 6l4 4 4-4" stroke="var(--dca-primary)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-      {showOthers &&
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {others.map((meta) =>
-            <ClinicianTypeCard
-              key={meta.id}
-              meta={meta}
-              selected={value === meta.id}
-              expanded={!!openCard[meta.id]}
-              onSelect={() => select(meta.id)}
-              onToggle={() => setOpenCard((e) => ({ ...e, [meta.id]: !e[meta.id] }))} />
-          )}
-        </div>
-      }
-    </div>);
-}
-
 function TimeOfDayScreen({ go, state, setState, onClose }) {
   // 14-day rolling window starting today. "Today" is pinned to BOOKING_NOW so
   // the prototype shows a believable state (no past slots, etc.) regardless
@@ -2070,22 +2009,22 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
   const [dayIdx, setDayIdx] = React.useState(earliestDefault.dayIdx);
   const [winStart, setWinStart] = React.useState(0); // index of leftmost visible tab
   // All time-band accordions start collapsed — the user has to tap a band
-  // to reveal its slot list. The default selectedSlot still drives the
-  // Continue button label so the screen is actionable on first load.
+  // to reveal its slot list. Nothing is pre-selected; the patient must
+  // actively pick a slot before Continue is actionable.
   const [openBand, setOpenBand] = React.useState(null);
-  const [selectedSlot, setSelectedSlot] = React.useState({
-    band: earliestDefault.band, h: earliestDefault.h, m: earliestDefault.m,
-  });
+  const [selectedSlot, setSelectedSlot] = React.useState(null);
 
-  // Filter sheet state. Defaults seed from the clinician-type screen.
+  // Filter sheet state. Defaults to the recommended Advanced Clinical
+  // Practitioner; the patient can override via the type filter pill.
   const [filters, setFilters] = React.useState(() => ({
     gender: 'any', // 'any' | 'female' | 'male'
-    type: state?.clinicianType || 'ACP',
+    type: state?.clinicianType || 'ACP', // CLINICIAN_TYPE_OPTIONS id
     apptKind: 'video' // 'video' | 'phone'
   }));
   const [activeSheet, setActiveSheet] = React.useState(null); // 'gender' | 'type' | 'apptKind' | null
   // Filter pills row is collapsible — the icon button on the right toggles it.
-  const [showFilters, setShowFilters] = React.useState(true);
+  // Hidden by default in epsilon; user can reveal via the filter icon.
+  const [showFilters, setShowFilters] = React.useState(false);
   // Continue button transitions through idle → loading → navigate when a slot
   // is selected. The loading state is non-interactive and shows a spinner.
   const [continueLoading, setContinueLoading] = React.useState(false);
@@ -2108,9 +2047,6 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
 
   const member = (state?.member || 'Jane Doe');
   const concern = state?.concern || 'Your concern';
-  const clinicianTypeId = state?.clinicianType || 'ACP';
-  const clinicianMeta = CLINICIAN_TYPE_OPTIONS.find((o) => o.id === clinicianTypeId);
-  const clinicianTitle = clinicianMeta?.title || 'Clinician';
 
   const visibleDays = days.slice(winStart, winStart + 2);
   const canPrev = winStart > 0;
@@ -2124,19 +2060,25 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
     return TIME_BANDS.filter((b) => timesForBand(currentDay, b, NOW).length > 0);
   }, [dayIdx, currentDay, NOW]);
 
-  // Soonest bookable slot across the whole window — drives the "Next available"
-  // hero card.
-  const nextAvailable = React.useMemo(() => {
-    for (let di = 0; di < days.length; di++) {
+  // The 3 soonest bookable slots across the whole window — drives the
+  // "Soonest availability" quick-pick row above the time bands.
+  // TIME_BANDS is iterated in chronological-within-day order (Morning,
+  // Afternoon, Evening, then Overnight which rolls to the next day);
+  // good enough for the demo's day-by-day display.
+  const soonestSlots = React.useMemo(() => {
+    const out = [];
+    for (let di = 0; di < days.length && out.length < 3; di++) {
       const d = days[di];
       for (const band of TIME_BANDS) {
-        const slots = timesForBand(d, band, NOW);
-        if (slots.length) {
-          return { dayIdx: di, day: d, band, slot: slots[0] };
+        const slots = timesForBand(d, band, di === 0 ? NOW : null);
+        for (const s of slots) {
+          out.push({ dayIdx: di, day: d, band, slot: s });
+          if (out.length >= 3) break;
         }
+        if (out.length >= 3) break;
       }
     }
-    return null;
+    return out;
   }, [days, NOW]);
 
   // Continue button label: relative day prefix + 24h time + "(in N minutes)"
@@ -2162,12 +2104,13 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
     filters.gender === 'female' ? 'Female clinician' : 'Male clinician';
   const filterTypeMeta = CLINICIAN_TYPE_OPTIONS.find((o) => o.id === filters.type);
   const filterTypeLabel = filterTypeMeta?.title || 'Clinician type';
+  const clinicianTitle = filterTypeMeta?.title || 'Advanced Clinical Practitioner';
   const apptKindLabel = filters.apptKind === 'video' ? 'Video appointment' : 'Phone appointment';
 
   const labelFor = (which, v) => {
     if (which === 'gender') return v === 'any' ? 'Any gender' : v === 'female' ? 'Female clinician' : 'Male clinician';
-    if (which === 'apptKind') return v === 'video' ? 'Video appointment' : 'Phone appointment';
     if (which === 'type') return (CLINICIAN_TYPE_OPTIONS.find((o) => o.id === v)?.title) || v;
+    if (which === 'apptKind') return v === 'video' ? 'Video appointment' : 'Phone appointment';
     return '';
   };
 
@@ -2199,28 +2142,31 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
       toastTimer.current = setTimeout(() => setToast(null), 3000);
       return;
     }
+    // Epsilon doesn't let the patient choose a clinician — auto-assign
+    // one based on the (type, gender) filter so the confirmation
+    // screen's "Meet your clinician" card can render immediately.
+    const clinician = assignClinician(filters.type, filters.gender);
     setState((s) => ({
       ...s,
       selectedSlot: { day: dayIdx, ...selectedSlot },
-      // Persist the filter selections so downstream screens (Meet your
-      // clinician, Appointment booked summary) can reflect them.
       apptKind: filters.apptKind,
       gender: filters.gender,
       clinicianType: filters.type,
+      clinician,
     }));
-    // Show the "Confirming slot availability" loading state briefly, then
-    // navigate to the Meet-your-clinician picker.
+    // "Confirming slot availability" loading state, then jump straight
+    // to the green confirmation screen.
     setContinueLoading(true);
     setTimeout(() => {
       setContinueLoading(false);
-      go('meet-clinician');
+      go('confirmed');
     }, 1200);
   };
 
   return (
     <BookingShell
       go={go} onClose={onClose}
-      progress={50}
+      progress={progressForStep('time-of-day')}
       breadcrumb={
         <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3, minWidth: 0, width: '100%' }}>
           <span style={{ color: '#030712', fontWeight: 600 }}>Booking details</span>
@@ -2291,6 +2237,16 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
         </button>
       </div>
 
+      {/* Inline clinician-role sentence — replaces the standalone
+          "Clinician type" screen that theta used. Tracks the type
+          the patient picks via the filter pill. */}
+      <div style={{
+        fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
+        color: '#4B5563', width: '100%'
+      }}>
+        You're booking with {/^[aeiou]/i.test(clinicianTitle) ? 'an' : 'a'} <strong style={{ color: '#030712', fontWeight: 600 }}>{clinicianTitle}</strong>, who is best suited to help with <strong style={{ color: '#030712', fontWeight: 600 }}>{concern}</strong>.
+      </div>
+
       {/* Clinician or appointment preferences — toggled by the filter button. */}
       {showFilters && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
@@ -2310,63 +2266,46 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
         </div>
       )}
 
-      {/* Next available hero card */}
-      {nextAvailable &&
+      {/* Soonest availability — row of 3 quick-pick slots */}
+      {soonestSlots.length > 0 &&
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
           <div style={{
             fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
             color: 'var(--dca-primary)'
-          }}>Next available</div>
-          <button
-            onClick={() => {
-              setDayIdx(nextAvailable.dayIdx);
-              setOpenBand(nextAvailable.band.id);
-              setSelectedSlot({ band: nextAvailable.band.id, h: nextAvailable.slot.h, m: nextAvailable.slot.m });
-              // Slide window to include the next-available day if needed.
-              setWinStart(Math.min(Math.max(nextAvailable.dayIdx - 1, 0), days.length - 2));
-            }}
-            style={{
-              all: 'unset', cursor: 'pointer', boxSizing: 'border-box', width: '100%',
-              display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 12,
-              padding: 16,
-              background: 'var(--dca-tint)',
-              border: '1px solid var(--dca-tint-line)',
-              boxShadow: 'var(--dca-card-shadow)',
-              borderRadius: 16
-            }}>
-            <div style={{
-              flexShrink: 0, width: 36, height: 36, borderRadius: 9999,
-              background: '#FFFFFF', display: 'grid', placeItems: 'center'
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="9" stroke="var(--dca-primary)" strokeWidth="1.6" />
-                <path d="M12 7v5l3 2" stroke="var(--dca-primary)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </div>
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-              <div style={{
-                fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 14, lineHeight: '20px',
-                color: '#030712'
-              }}>
-                {(() => {
-                  const idxFromToday = dayDiff(nextAvailable.day, today);
-                  const dayWord = idxFromToday === 0
-                    ? (nextAvailable.band.id === 'evening' || nextAvailable.band.id === 'overnight' ? 'Tonight' : 'Today')
-                    : idxFromToday === 1 ? 'Tomorrow'
-                    : idxFromToday <= 6 ? `In ${idxFromToday} days`
-                    : `${DAYS_SHORT[nextAvailable.day.getDay()]} ${nextAvailable.day.getDate()} ${MONTHS_SHORT[nextAvailable.day.getMonth()]}`;
-                  return `${dayWord} at ${fmtTime(nextAvailable.slot.h, nextAvailable.slot.m)} with ${clinicianTitle === 'Clinician' ? 'an Advanced Clinician' : clinicianTitle.startsWith('A') || clinicianTitle.startsWith('E') ? `an ${clinicianTitle}` : `a ${clinicianTitle}`}`;
-                })()}
-              </div>
-              <div style={{
-                fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
-                color: '#4B5563'
-              }}>Tap to select this slot</div>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
-              <path d="M6 4l4 4-4 4" stroke="var(--dca-primary)" strokeWidth="1.33" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          }}>Soonest availability</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, width: '100%' }}>
+            {soonestSlots.map((s) => {
+              const isSel = selectedSlot &&
+                selectedSlot.band === s.band.id &&
+                selectedSlot.h === s.slot.h &&
+                selectedSlot.m === s.slot.m &&
+                dayIdx === s.dayIdx;
+              return (
+                <button
+                  key={`${s.dayIdx}-${s.band.id}-${s.slot.h}-${s.slot.m}`}
+                  onClick={() => {
+                    setDayIdx(s.dayIdx);
+                    setOpenBand(s.band.id);
+                    setSelectedSlot({ band: s.band.id, h: s.slot.h, m: s.slot.m });
+                    setWinStart(Math.min(Math.max(s.dayIdx - 1, 0), days.length - 2));
+                  }}
+                  style={{
+                    all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                    display: 'flex', justifyContent: 'center', alignItems: 'center',
+                    padding: '12px 8px',
+                    background: isSel ? 'var(--dca-tint)' : '#FFFFFF',
+                    border: `${isSel ? 2 : 1}px solid ${isSel ? 'var(--dca-primary)' : 'var(--dca-tint-line)'}`,
+                    boxShadow: 'var(--dca-card-shadow)',
+                    borderRadius: 12,
+                  }}>
+                  <span style={{
+                    fontFamily: "'Work Sans'", fontWeight: isSel ? 600 : 500, fontSize: 14, lineHeight: '20px',
+                    color: isSel ? 'var(--dca-primary)' : '#030712'
+                  }}>{fmtTime(s.slot.h, s.slot.m)}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       }
 
@@ -2479,7 +2418,7 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
                   <div style={{
                     fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
                     color: '#030712'
-                  }}>{getBandLabel(band, currentDay, dayIdx)}</div>
+                  }}>{getBandLabel(band)}</div>
                   <div style={{
                     fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px',
                     color: '#4B5563'
@@ -2494,40 +2433,29 @@ function TimeOfDayScreen({ go, state, setState, onClose }) {
               {isOpen && slots.length > 0 &&
               <div style={{
                 marginTop: 12, paddingTop: 4,
-                display: 'flex', flexDirection: 'column'
+                display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8
               }}>
-                  {slots.map((slot, i) => {
+                  {slots.map((slot) => {
                   const isSel = selectedSlot &&
                   selectedSlot.h === slot.h && selectedSlot.m === slot.m && openBand === band.id;
                   return (
-                    <React.Fragment key={`${slot.h}-${slot.m}`}>
-                        {i > 0 && <div style={{ width: '100%', borderTop: '1px solid var(--dca-tint-line)', margin: '10px 0' }} />}
-                        <button
-                        onClick={() => setSelectedSlot({ band: band.id, h: slot.h, m: slot.m })}
-                        style={{
-                          all: 'unset', cursor: 'pointer', width: '100%',
-                          display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 8
-                        }}>
-                          <span style={{
-                          width: 16, height: 16, borderRadius: 9999, flexShrink: 0,
-                          border: `1px solid ${isSel ? 'var(--dca-primary)' : 'var(--dca-tint-border)'}`,
-                          background: '#fff',
-                          display: 'grid', placeItems: 'center'
-                        }}>
-                            {isSel && <span style={{ width: 8, height: 8, borderRadius: 9999, background: 'var(--dca-primary)' }} />}
-                          </span>
-                          <span style={{
-                          fontFamily: "'Work Sans'", fontWeight: isSel ? 600 : 400, fontSize: 12, lineHeight: '16px',
-                          color: '#030712'
-                        }}>{fmtTime(slot.h, slot.m)}</span>
-                        {band.id === 'overnight' &&
-                          <span style={{
-                            fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 11, lineHeight: '14px',
-                            color: '#4B5563'
-                          }}>· {DAYS_SHORT[addDays(currentDay, 1).getDay()]}</span>
-                        }
-                        </button>
-                      </React.Fragment>);
+                    <button
+                      key={`${slot.h}-${slot.m}`}
+                      onClick={() => setSelectedSlot({ band: band.id, h: slot.h, m: slot.m })}
+                      style={{
+                        all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                        padding: '8px 4px',
+                        background: isSel ? 'var(--dca-tint)' : '#FFFFFF',
+                        border: `${isSel ? 2 : 1}px solid ${isSel ? 'var(--dca-primary)' : 'var(--dca-tint-line)'}`,
+                        borderRadius: 8,
+                        textAlign: 'center'
+                      }}>
+                      <span style={{
+                        fontFamily: "'Work Sans'", fontWeight: isSel ? 600 : 500, fontSize: 13, lineHeight: '18px',
+                        color: isSel ? 'var(--dca-primary)' : '#030712'
+                      }}>{fmtTime(slot.h, slot.m)}</span>
+                    </button>);
                 })}
                 </div>
               }
@@ -2590,7 +2518,7 @@ Object.assign(window, {
   StatusBarOverlay, BookingHeader, PrimaryButton, SecondaryButton, Chevron, InfoIcon,
   PulseDot, TabBar, BookingShell, PillCTA,
   AvailabilityHint, HomeScreen, EmergencyScreen, MemberScreen, SearchScreen, ConcernScreen, AttachScreen,
-  ClinicianTypeScreen, TimeOfDayScreen,
+  TimeOfDayScreen,
   CATEGORIES, CONCERNS, CATEGORY_IMAGES,
   BLUE, BLUE_HEADER, BLUE_50, BLUE_100, BLUE_200, NAVY, NAVY_700, GREY_BG, GREY_BORDER, GREY_TEXT, GREY_400, GREEN, GREEN_100, YELLOW, AMBER_50, AMBER_700
 });

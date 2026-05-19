@@ -625,11 +625,11 @@ function FilterPill({ label, labelFor, value, options, onChange, disabledOptions
 const CLINICIAN_TYPES = [
   {
     id: 'ACP',
-    label: 'ACP clinicians',
+    label: 'Advanced Clinical Practitioners',
     name: 'Advanced Clinical Practitioner',
     can: 'Everyday issues, prescriptions, fit notes, and more.',
     cannot: null,
-    detail: 'ACPs are senior clinicians who can diagnose, prescribe, and refer for most everyday concerns — including skin, infections, women\u2019s & men\u2019s health, and minor injuries. They have specialist training in long-term condition management.',
+    detail: 'Advanced Clinical Practitioners are senior clinicians who can diagnose, prescribe, and refer for most everyday concerns — including skin, infections, women\u2019s & men\u2019s health, and minor injuries. They have specialist training in long-term condition management.',
   },
   {
     id: 'Doctors',
@@ -637,7 +637,7 @@ const CLINICIAN_TYPES = [
     name: 'Doctor (GP)',
     can: 'Complex conditions, prescriptions, referrals, and more.',
     cannot: null,
-    detail: 'GPs see patients with more complex or longer-term medical needs. Useful when you want a doctor specifically, or when an ACP refers you on.',
+    detail: 'GPs see patients with more complex or longer-term medical needs. Useful when you want a doctor specifically, or when an Advanced Clinical Practitioner refers you on.',
   },
   {
     id: 'Mental health practitioners',
@@ -662,7 +662,7 @@ const CLINICIAN_TYPES = [
 const CLINICIAN_TYPE_INFO = {
   ACP: {
     name: 'Advanced Clinical Practitioner',
-    linkLabel: 'See what ACPs do',
+    linkLabel: 'See what Advanced Clinical Practitioners do',
     sheetTitle: 'Advanced Clinical Practitioner',
     intro: 'Highly experienced clinicians registered with the Nursing and Midwifery Council (NMC) or the Health and Care Professions Council (HCPC).',
     can: [
@@ -757,7 +757,7 @@ function ClinicianTypeIntro({ type, recommended = 'ACP', concern = 'Acne', onSho
             all: 'unset', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4,
             color: BLUE, fontSize: 13.5, fontWeight: 700, textDecoration: 'underline',
           }}>
-            View {recPlural === 'ACPs' ? 'ACP' : recPlural === 'GPs' ? 'GP' : recPlural === 'MHPs' ? 'MHP' : 'Physio'} availability
+            View {recPlural === 'ACPs' ? 'Advanced Clinical Practitioner' : recPlural === 'GPs' ? 'GP' : recPlural === 'MHPs' ? 'MHP' : 'Physio'} availability
           </button>
         )}
       </div>
@@ -1343,7 +1343,7 @@ function ApptScreen({ go, state, setState, onClose, anonymise, errorMode = 'none
 
       <StickyBookNow
         onClick={onBookNow}
-        summary={slotIsForToday && state.slot ? `${fmtDayShort(DAYS[dayIdx])} at ${state.slot}${clinicianConfirmed && state.clinician ? ` with ${anonymise ? `your ${state.clinician.role === 'ACP' ? 'ACP' : 'Doctor'}` : state.clinician.name}` : ''}` : null}
+        summary={slotIsForToday && state.slot ? `${fmtDayShort(DAYS[dayIdx])} at ${state.slot}${clinicianConfirmed && state.clinician ? ` with ${anonymise ? `your ${state.clinician.role === 'ACP' ? 'Advanced Clinical Practitioner' : 'Doctor'}` : state.clinician.name}` : ''}` : null}
         onChooseClinician={slotIsForToday && sheetClinicians.length > 0 ? () => setShowClinicianSheet(true) : null}
       />
       {toast && <ApptToast message={toast}/>}
@@ -1503,7 +1503,7 @@ function EmptyStateCard({ go, onSetReminder }) {
         </div>
         <div style={{ flex: 1, textAlign: 'left' }}>
           <div style={{ fontWeight: 700, color: NAVY, fontSize: 13.5 }}>Tomorrow, 7:00am</div>
-          <div style={{ fontSize: 12, color: GREY_TEXT }}>Earliest with an ACP · usually faster</div>
+          <div style={{ fontSize: 12, color: GREY_TEXT }}>Earliest with an Advanced Clinical Practitioner · usually faster</div>
         </div>
         <Chevron color={BLUE}/>
       </button>
@@ -1529,7 +1529,7 @@ function FewHoursCard({ onSetReminder, setFilters }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
       <div style={{ background: AMBER_50, border: `1px solid #F2D98A`, borderRadius: 10, padding: 14, fontSize: 13, color: '#5C420A', lineHeight: 1.5 }}>
         <div style={{ fontWeight: 700, color: AMBER_700, marginBottom: 4 }}>Limited GP availability</div>
-        Next GP slot is at <strong>6:45pm</strong>. An ACP could see you in just 12 minutes.
+        Next GP slot is at <strong>6:45pm</strong>. An Advanced Clinical Practitioner could see you in just 12 minutes.
       </div>
       <button onClick={() => setFilters(f => ({ ...f, type: 'ACP' }))} style={{
         all: 'unset', cursor: 'pointer', boxSizing: 'border-box', display: 'flex', alignItems: 'center',
@@ -1537,8 +1537,8 @@ function FewHoursCard({ onSetReminder, setFilters }) {
       }}>
         <PulseDot color="#fff"/>
         <div style={{ flex: 1, textAlign: 'left' }}>
-          <div style={{ fontWeight: 700, fontSize: 13 }}>Switch to ACP — see someone in 12 min</div>
-          <div style={{ fontSize: 11.5, opacity: 0.85 }}>ACPs can prescribe, refer & treat 90% of GP cases</div>
+          <div style={{ fontSize: 13, fontWeight: 700 }}>Switch to Advanced Clinical Practitioner — see someone in 12 min</div>
+          <div style={{ fontSize: 11.5, opacity: 0.85 }}>Advanced Clinical Practitioners can prescribe, refer & treat 90% of GP cases</div>
         </div>
         <Chevron color="#fff"/>
       </button>
@@ -1673,26 +1673,26 @@ function DualSlider({ min, max, startVal, endVal, onChange }) {
 function ConfirmedScreen({ go, state, persona }) {
   const c = state.clinician || CLINICIANS[0];
   const firstName = c.first || (c.name ? c.name.split(' ')[0] : 'your clinician');
-  // Every clinician renders as "Advanced Clinician" in the prototype.
-  const roleLabel = 'Advanced Clinician';
+  // The assigned clinician carries its own roleLabel (set by
+  // assignClinician in TimeOfDayScreen). Fall back to the ACP default
+  // for clinicians that don't have one.
+  const roleLabel = c.roleLabel || 'Advanced Clinical Practitioner';
   const [aboutOpen, setAboutOpen] = React.useState(false);
 
-  // Resolve the booked slot into relative + full-date labels.
+  // Resolve the booked slot into relative + full-date labels using the
+  // canonical time helpers (BOOKING_NOW, TIME_BANDS, slotDate, fmtTime).
   const ss = state.selectedSlot;
-  let slotTime = state.slot || '08:00';
-  let relativeLabel = 'Today';
-  if (ss && typeof BOOKING_NOW !== 'undefined') {
-    const tStart = new Date(BOOKING_NOW); tStart.setHours(0, 0, 0, 0);
-    const currentDay = addDays(tStart, ss.day);
-    const band = TIME_BANDS.find((b) => b.id === ss.band) || TIME_BANDS[0];
-    const sd = slotDate(currentDay, band, ss.h, ss.m);
-    slotTime = fmtTime(ss.h, ss.m);
-    const idxFromToday = dayDiff(sd, tStart);
-    if (idxFromToday === 0) relativeLabel = 'Today';
-    else if (idxFromToday === 1) relativeLabel = 'Tomorrow';
-    else if (idxFromToday > 1 && idxFromToday <= 6) relativeLabel = `In ${idxFromToday} days`;
-    else relativeLabel = `${DAYS_SHORT[sd.getDay()]} ${sd.getDate()} ${MONTHS_SHORT[sd.getMonth()]}`;
-  }
+  const tStart = new Date(BOOKING_NOW); tStart.setHours(0, 0, 0, 0);
+  const currentDay = ss ? addDays(tStart, ss.day) : tStart;
+  const band = ss ? (TIME_BANDS.find((b) => b.id === ss.band) || TIME_BANDS[0]) : TIME_BANDS[0];
+  const sd = ss ? slotDate(currentDay, band, ss.h, ss.m) : null;
+  const slotTime = ss ? fmtTime(ss.h, ss.m) : '';
+  const idxFromToday = sd ? dayDiff(sd, tStart) : 0;
+  const relativeLabel = !sd ? ''
+    : idxFromToday === 0 ? 'Today'
+    : idxFromToday === 1 ? 'Tomorrow'
+    : idxFromToday > 1 && idxFromToday <= 6 ? `In ${idxFromToday} days`
+    : `${DAYS_SHORT[sd.getDay()]} ${sd.getDate()} ${MONTHS_SHORT[sd.getMonth()]}`;
 
   // "Done" returns to home; the booking stays in state so the home tile renders.
   const onDone = () => go('home');
@@ -1759,12 +1759,22 @@ function ConfirmedScreen({ go, state, persona }) {
             </div>
           </div>
 
+          {/* Meet your clinician — heading + clinician card. Epsilon's
+              patients can't pick a clinician, so they meet who's been
+              auto-assigned here on the confirmation screen. */}
+          <div style={{
+            alignSelf: 'flex-start',
+            fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 16, lineHeight: '24px',
+            color: '#030712',
+          }}>Meet your clinician</div>
+
           {/* Clinician card */}
           <div style={{
             boxSizing: 'border-box', width: '100%', padding: 24,
-            background: '#FFFFFF', border: '1px solid #D7E9FF', borderRadius: 16,
+            background: '#FFFFFF', border: '2px solid var(--dca-primary)', borderRadius: 16,
             display: 'flex', flexDirection: 'column', gap: 16,
             boxShadow: '0 4px 6px -1px rgba(15,55,190,0.05), 0 2px 4px -2px rgba(15,55,190,0.05)',
+            marginTop: -4,
           }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
               <ClinicianAvatar c={c} size={48}/>
@@ -2191,248 +2201,13 @@ function ReminderDoneScreen({ go }) {
 }
 
 // ═════════════════════════════════════════════════════════════
-// "Meet your clinician" — full-page picker after the time-of-day
-// loading state. Recommended Jane on top, "Other clinicians"
-// collapsible (Simon), and a fallback section with −15/+15 min
-// time-shift options (John, Sarah). Single-select across all
-// sections; sticky footer label tracks the chosen clinician.
+// Epsilon: the "Meet your clinician" picker has been removed.
+// Clinician is auto-assigned in TimeOfDayScreen.onContinue based
+// on the gender filter; the patient meets them on the green
+// confirmation screen ("Meet your clinician" is now a card there).
+// Atoms below (BadgeCheckIcon, ChevronToggle, RatingBadge) are
+// still used by ConfirmedScreen.
 // ═════════════════════════════════════════════════════════════
-function MeetClinicianScreen({ go, state, setState, onClose }) {
-  // Demo data tracks the gender filter the user set on the time-of-day
-  // screen. Ratings are intentionally Figma-exact (recommended 4.6, other
-  // 4.5, fallbacks higher) so the trade-off UI is visible in every variant.
-  const gender = state?.gender === 'male' ? 'male'
-    : state?.gender === 'female' ? 'female'
-    : 'any';
-
-  const RECOMMENDED_BY_GENDER = {
-    any: {
-      id: 'rec-jane', first: 'Jane', name: 'Jane Doe',
-      role: 'ACP', img: 'assets/doc-jane.png',
-      joined: 'June 2025', rating: 4.6, reviews: 120,
-      bio: 'Jane has over a decade of experience supporting patients with skin concerns. She focuses on practical, evidence-based advice and shared decision-making.',
-    },
-    female: {
-      id: 'rec-jane', first: 'Jane', name: 'Jane Doe',
-      role: 'ACP', img: 'assets/doc-jane.png',
-      joined: 'June 2025', rating: 4.6, reviews: 120,
-      bio: 'Jane has over a decade of experience supporting patients with skin concerns. She focuses on practical, evidence-based advice and shared decision-making.',
-    },
-    male: {
-      id: 'rec-simon', first: 'Simon', name: 'Simon Hart',
-      role: 'ACP', img: 'assets/doc-simon.png',
-      joined: 'January 2023', rating: 4.6, reviews: 120,
-      bio: 'Simon has over a decade of experience supporting patients with skin concerns. He focuses on practical, evidence-based advice and shared decision-making.',
-    },
-  };
-
-  const OTHERS_BY_GENDER = {
-    any: [{
-      id: 'oth-simon', first: 'Simon', name: 'Simon Hart',
-      role: 'ACP', img: 'assets/doc-simon.png',
-      joined: 'January 2023', rating: 4.5, reviews: 130,
-    }],
-    female: [{
-      id: 'oth-sarah', first: 'Sarah', name: 'Sarah Robins',
-      role: 'ACP', img: 'assets/doc-sarah.png',
-      joined: 'June 2025', rating: 4.5, reviews: 130,
-    }],
-    male: [{
-      id: 'oth-john', first: 'John', name: 'John Smith',
-      role: 'ACP', img: 'assets/doc-john.png',
-      joined: 'October 2024', rating: 4.5, reviews: 130,
-    }],
-  };
-
-  const FALLBACKS_BY_GENDER = {
-    any: {
-      before: {
-        id: 'fb-john', first: 'John', name: 'John Smith',
-        role: 'ACP', img: 'assets/doc-john.png',
-        joined: 'October 2024', rating: 4.8, reviews: 90,
-      },
-      after: {
-        id: 'fb-sarah', first: 'Sarah', name: 'Sarah Robins',
-        role: 'ACP', img: 'assets/doc-sarah.png',
-        joined: 'June 2025', rating: 4.7, reviews: 100,
-      },
-    },
-    female: {
-      before: {
-        id: 'fb-emma', first: 'Emma', name: 'Emma Hughes',
-        role: 'ACP', img: 'assets/doc-emma.png',
-        joined: 'March 2023', rating: 4.8, reviews: 90,
-      },
-      after: {
-        id: 'fb-rachel', first: 'Rachel', name: 'Rachel Adams',
-        role: 'ACP', img: 'assets/doc-rachel.png',
-        joined: 'September 2024', rating: 4.7, reviews: 100,
-      },
-    },
-    male: {
-      before: {
-        id: 'fb-michael', first: 'Michael', name: 'Michael Chen',
-        role: 'ACP', img: 'assets/doc-michael.png',
-        joined: 'November 2024', rating: 4.8, reviews: 90,
-      },
-      after: {
-        id: 'fb-john', first: 'John', name: 'John Smith',
-        role: 'ACP', img: 'assets/doc-john.png',
-        joined: 'October 2024', rating: 4.7, reviews: 100,
-      },
-    },
-  };
-
-  const recommended = RECOMMENDED_BY_GENDER[gender];
-  const otherClinicians = OTHERS_BY_GENDER[gender];
-  const fallbackBefore = FALLBACKS_BY_GENDER[gender].before;
-  const fallbackAfter = FALLBACKS_BY_GENDER[gender].after;
-
-  const allClinicians = [recommended, ...otherClinicians, fallbackBefore, fallbackAfter];
-
-  const [selectedId, setSelectedId] = React.useState(recommended.id);
-  // All disclosures start collapsed — Simon is only revealed when the user
-  // taps "Other clinicians", and each time-shift section toggles independently.
-  const [showOthers, setShowOthers] = React.useState(false);
-  const [openBefore, setOpenBefore] = React.useState(false);
-  const [openAfter, setOpenAfter] = React.useState(false);
-
-  // Compute relative time labels for the −15/+15 fallback sections.
-  // Falls back to a sensible default if state.selectedSlot is missing
-  // (e.g. someone navigates here directly during dev).
-  const sel = state?.selectedSlot;
-  const NOW = BOOKING_NOW;
-  const today = React.useMemo(() => { const d = new Date(NOW); d.setHours(0, 0, 0, 0); return d; }, []);
-  const exactDate = React.useMemo(() => {
-    if (!sel) return null;
-    const dayObj = addDays(today, sel.day);
-    const band = TIME_BANDS.find((b) => b.id === sel.band) || TIME_BANDS[0];
-    return slotDate(dayObj, band, sel.h, sel.m);
-  }, [sel, today]);
-  const formatSlotLabel = (date) => {
-    if (!date) return '';
-    const diff = dayDiff(date, today);
-    const dayWord = diff === 0 ? 'Today'
-      : diff === 1 ? 'Tomorrow'
-      : `${DAYS_SHORT[date.getDay()]} ${date.getDate()} ${MONTHS_SHORT[date.getMonth()]}`;
-    return `${dayWord} at ${fmtTime(date.getHours(), date.getMinutes())}`;
-  };
-  const labelBefore = exactDate ? formatSlotLabel(new Date(exactDate.getTime() - 15 * 60000)) : 'Today at 07:45';
-  const labelAfter = exactDate ? formatSlotLabel(new Date(exactDate.getTime() + 15 * 60000)) : 'Today at 08:15';
-
-  const selectedClinician = allClinicians.find((c) => c.id === selectedId) || recommended;
-  // Prototype convention: every clinician renders as "Advanced Clinician"
-  // regardless of underlying role, to keep the demo copy consistent with
-  // the booking-details breadcrumb.
-  const fullRole = () => 'Advanced Clinician';
-
-  const member = state?.member || 'Jane Doe';
-  const concern = state?.concern || 'Your concern';
-
-  const onBook = () => {
-    setState((s) => ({ ...s, clinician: selectedClinician }));
-    go('confirmed');
-  };
-
-  return (
-    <BookingShell
-      go={go} onClose={onClose}
-      progress={75}
-      breadcrumb={
-        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.3, minWidth: 0, width: '100%' }}>
-          <span style={{ color: '#030712', fontWeight: 600 }}>Booking details</span>
-          <span style={{ color: '#4B5563', fontWeight: 400, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{member} · {concern} · {fullRole(selectedClinician)}</span>
-        </span>
-      }
-      footer={
-        <button
-          onClick={onBook}
-          style={{
-            all: 'unset', boxSizing: 'border-box', cursor: 'pointer',
-            display: 'flex', justifyContent: 'center', alignItems: 'center',
-            gap: 8, padding: '12px 16px', width: '100%', height: 40,
-            background: 'var(--dca-primary)',
-            boxShadow: 'var(--dca-card-shadow)', borderRadius: 9999,
-            fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
-            color: 'var(--dca-tint)',
-          }}>
-          Book now with {selectedClinician.first}
-        </button>
-      }>
-
-      <div style={{
-        fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 16, lineHeight: '24px', color: '#030712'
-      }}>Meet your clinician</div>
-
-      {/* Recommended (Jane) */}
-      <ClinicianRecommendedCard
-        clinician={recommended}
-        selected={selectedId === recommended.id}
-        onSelect={() => setSelectedId(recommended.id)}
-        roleLabel={fullRole(recommended)} />
-
-      {/* Other clinicians — disclosure expands inline to the one alternate
-          card (Simon). Banner + time accordions are SIBLINGS below, not
-          children, so they show up in the normal document flow only after
-          "Other clinicians" has been opened. */}
-      <SectionDisclosure
-        title="Other clinicians"
-        open={showOthers}
-        onToggle={() => setShowOthers((v) => !v)}>
-        {otherClinicians.map((c) => (
-          <ClinicianMiniCard
-            key={c.id} clinician={c}
-            selected={selectedId === c.id}
-            onSelect={() => setSelectedId(c.id)}
-            roleLabel={fullRole(c)} />
-        ))}
-      </SectionDisclosure>
-
-      {/* No-exact-match fallback — gated on the same boolean as "Other
-          clinicians". Not rendered at all while that disclosure is closed.
-          Renders as siblings in the document flow once open, with the
-          standard shell gap (no extra container, no special-case spacing). */}
-      {showOthers && (
-        <>
-          <FallbackInfoBanner />
-
-          <TimeShiftDisclosure
-            label={labelBefore}
-            open={openBefore}
-            onToggle={() => setOpenBefore((v) => !v)}>
-            <ClinicianMiniCard
-              clinician={fallbackBefore}
-              selected={selectedId === fallbackBefore.id}
-              onSelect={() => setSelectedId(fallbackBefore.id)}
-              roleLabel={fullRole(fallbackBefore)} />
-          </TimeShiftDisclosure>
-
-          <TimeShiftDisclosure
-            label={labelAfter}
-            open={openAfter}
-            onToggle={() => setOpenAfter((v) => !v)}>
-            <ClinicianMiniCard
-              clinician={fallbackAfter}
-              selected={selectedId === fallbackAfter.id}
-              onSelect={() => setSelectedId(fallbackAfter.id)}
-              roleLabel={fullRole(fallbackAfter)} />
-          </TimeShiftDisclosure>
-        </>
-      )}
-    </BookingShell>
-  );
-}
-
-// ─── Shared atoms used by MeetClinicianScreen ──────────────────
-
-function SparkleIcon({ size = 12, color = '#FFFFFF' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 3l1.8 4.7L18.5 9.5 13.8 11.3 12 16l-1.8-4.7L5.5 9.5 10.2 7.7 12 3z"
-        fill={color} />
-    </svg>
-  );
-}
 
 function BadgeCheckIcon({ size = 12, color = '#FFFFFF' }) {
   return (
@@ -2441,15 +2216,6 @@ function BadgeCheckIcon({ size = 12, color = '#FFFFFF' }) {
         fill={color} opacity="0.18" />
       <path d="M8.5 12.5l2.3 2.3L15.8 9.7"
         stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function DoubleCheckIcon({ size = 14, color = '#FFFFFF' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M2 13l4 4 8-9" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M10 17l1.5 1.6 9.5-10.6" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -2477,170 +2243,7 @@ function RatingBadge({ rating, reviews }) {
   );
 }
 
-function SelectButton({ selected, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        all: 'unset', boxSizing: 'border-box', cursor: 'pointer',
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-        padding: '8px 16px', borderRadius: 9999, minWidth: 96,
-        background: selected ? 'var(--dca-primary)' : '#FFFFFF',
-        border: selected ? '1px solid var(--dca-primary)' : '1px solid #FFB306',
-        color: selected ? 'var(--dca-tint)' : '#030712',
-        fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
-      }}>
-      {selected && <DoubleCheckIcon size={14} color="var(--dca-tint)" />}
-      {selected ? 'Selected' : 'Select'}
-    </button>
-  );
-}
-
-function ClinicianRecommendedCard({ clinician, selected, onSelect, roleLabel }) {
-  return (
-    <div style={{
-      position: 'relative',
-      boxSizing: 'border-box', width: '100%',
-      background: 'var(--dca-tint)',
-      border: '2px solid var(--dca-primary)', borderRadius: 16,
-      padding: 24, marginTop: 10,
-      display: 'flex', flexDirection: 'column', gap: 12,
-      boxShadow: '0 10px 15px -3px rgba(15,55,190,0.10), 0 4px 6px -4px rgba(15,55,190,0.10)',
-    }}>
-      {/* Recommended badge — overlaps the top edge */}
-      <div style={{
-        position: 'absolute', top: -10, left: 16,
-        display: 'inline-flex', alignItems: 'center', gap: 4,
-        padding: '4px 10px', borderRadius: 9999,
-        background: 'var(--dca-primary)', color: '#FFFFFF',
-        fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 11, lineHeight: '14px',
-      }}>
-        <SparkleIcon size={12} />
-        Recommended
-      </div>
-
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <ClinicianAvatar c={clinician} size={48} />
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 16, lineHeight: '24px', color: '#030712' }}>{clinician.name}</div>
-          <div style={{ fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px', color: '#4B5563' }}>{roleLabel}</div>
-          <div style={{ fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px', color: '#4B5563' }}>
-            Joined Doctor Care Anywhere in {clinician.joined}
-          </div>
-          <RatingBadge rating={clinician.rating} reviews={clinician.reviews} />
-        </div>
-      </div>
-
-      <div style={{
-        fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '18px',
-        color: '#414245',
-      }}>{clinician.bio}</div>
-
-      <div><SelectButton selected={selected} onClick={onSelect} /></div>
-    </div>
-  );
-}
-
-function ClinicianMiniCard({ clinician, selected, onSelect, roleLabel }) {
-  return (
-    <div style={{
-      boxSizing: 'border-box', width: '100%',
-      background: '#FFFFFF',
-      border: '1px solid #D7E9FF', borderRadius: 16,
-      padding: 24,
-      display: 'flex', flexDirection: 'column', gap: 12,
-      boxShadow: '0 4px 6px -1px rgba(15,55,190,0.05), 0 2px 4px -2px rgba(15,55,190,0.05)',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-        <ClinicianAvatar c={clinician} size={48} />
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <div style={{ fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 16, lineHeight: '24px', color: '#030712' }}>{clinician.name}</div>
-          <div style={{ fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px', color: '#4B5563' }}>{roleLabel}</div>
-          <div style={{ fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px', color: '#4B5563' }}>
-            Joined Doctor Care Anywhere in {clinician.joined}
-          </div>
-          <RatingBadge rating={clinician.rating} reviews={clinician.reviews} />
-        </div>
-      </div>
-
-      <div><SelectButton selected={selected} onClick={onSelect} /></div>
-    </div>
-  );
-}
-
-function SectionDisclosure({ title, open, onToggle, children }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-      <button
-        onClick={onToggle}
-        aria-expanded={open}
-        style={{
-          all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%',
-          fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
-          color: 'var(--dca-primary)',
-        }}>
-        <span>{title}</span>
-        <ChevronToggle open={open} />
-      </button>
-      {open && children}
-    </div>
-  );
-}
-
-function FallbackInfoBanner() {
-  return (
-    <div style={{
-      boxSizing: 'border-box', width: '100%',
-      background: '#FFFFFF',
-      border: '1px solid #D7E9FF', borderRadius: 16,
-      padding: 16,
-      display: 'flex', flexDirection: 'row', alignItems: 'flex-start', gap: 10,
-    }}>
-      <div style={{
-        flexShrink: 0, width: 20, height: 20, borderRadius: 9999,
-        background: 'var(--dca-primary)', display: 'grid', placeItems: 'center',
-      }}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-          <path d="M12 8v.01M12 11v5" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      </div>
-      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <div style={{
-          fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px', color: '#030712'
-        }}>Need a few more options?</div>
-        <div style={{
-          fontFamily: "'Work Sans'", fontWeight: 400, fontSize: 12, lineHeight: '16px', color: '#4B5563'
-        }}>See below a few more clinicians available around the date and time you selected.</div>
-      </div>
-    </div>
-  );
-}
-
-function TimeShiftDisclosure({ label, open, onToggle, children }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-      <button
-        onClick={onToggle}
-        aria-expanded={open}
-        style={{
-          all: 'unset', cursor: 'pointer', boxSizing: 'border-box',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          width: '100%',
-          fontFamily: "'Work Sans'", fontWeight: 600, fontSize: 12, lineHeight: '16px',
-          color: 'var(--dca-primary)',
-        }}>
-        <span>{label}</span>
-        <ChevronToggle open={open} />
-      </button>
-      {open && children}
-    </div>
-  );
-}
-
 Object.assign(window, {
   ApptScreen, ConfirmedScreen, ExitSheet, ReminderScreen, ReminderDoneScreen,
   CalendarSheet, CLINICIANS, DAYS, fmtDayShort, fmtDayLong, fmtTime12,
-  MeetClinicianScreen,
 });
