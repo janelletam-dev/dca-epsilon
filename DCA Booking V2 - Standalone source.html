@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DCA Booking — V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+
+<meta name="ext-resource-dependency" content="assets/cat-ent.png" data-resource-id="r_cat_ent" />
+<meta name="ext-resource-dependency" content="assets/cat-followup.png" data-resource-id="r_cat_followup" />
+<meta name="ext-resource-dependency" content="assets/cat-gut.png" data-resource-id="r_cat_gut" />
+<meta name="ext-resource-dependency" content="assets/cat-headache.png" data-resource-id="r_cat_headache" />
+<meta name="ext-resource-dependency" content="assets/cat-heart.png" data-resource-id="r_cat_heart" />
+<meta name="ext-resource-dependency" content="assets/cat-ill.png" data-resource-id="r_cat_ill" />
+<meta name="ext-resource-dependency" content="assets/cat-joints.png" data-resource-id="r_cat_joints" />
+<meta name="ext-resource-dependency" content="assets/cat-mens.png" data-resource-id="r_cat_mens" />
+<meta name="ext-resource-dependency" content="assets/cat-mh.png" data-resource-id="r_cat_mh" />
+<meta name="ext-resource-dependency" content="assets/cat-resp.png" data-resource-id="r_cat_resp" />
+<meta name="ext-resource-dependency" content="assets/cat-skin.png" data-resource-id="r_cat_skin" />
+<meta name="ext-resource-dependency" content="assets/cat-wh.png" data-resource-id="r_cat_wh" />
+<meta name="ext-resource-dependency" content="assets/clinician.png" data-resource-id="r_clinician" />
+<meta name="ext-resource-dependency" content="assets/dca-icon-on-blue.png" data-resource-id="r_dca_icon_on_blue" />
+<meta name="ext-resource-dependency" content="assets/dca-icon-transparent.png" data-resource-id="r_dca_icon_transparent" />
+<meta name="ext-resource-dependency" content="assets/dca-logo.png" data-resource-id="r_dca_logo" />
+<meta name="ext-resource-dependency" content="assets/doc-anna.png" data-resource-id="r_doc_anna" />
+<meta name="ext-resource-dependency" content="assets/doc-emma.png" data-resource-id="r_doc_emma" />
+<meta name="ext-resource-dependency" content="assets/doc-jane.png" data-resource-id="r_doc_jane" />
+<meta name="ext-resource-dependency" content="assets/doc-john.png" data-resource-id="r_doc_john" />
+<meta name="ext-resource-dependency" content="assets/doc-michael.png" data-resource-id="r_doc_michael" />
+<meta name="ext-resource-dependency" content="assets/doc-rachel.png" data-resource-id="r_doc_rachel" />
+<meta name="ext-resource-dependency" content="assets/doc-sarah.png" data-resource-id="r_doc_sarah" />
+<meta name="ext-resource-dependency" content="assets/doc-simon.png" data-resource-id="r_doc_simon" />
+<meta name="ext-resource-dependency" content="assets/irina.png" data-resource-id="r_irina" />
+<meta name="ext-resource-dependency" content="assets/user-sample.png" data-resource-id="r_user_sample" />
+
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #EEF1F4; font-family: 'Work Sans', -apple-system, "SF Pro Text", system-ui, sans-serif; }
+  #root, #root *:not(svg):not(svg *) { font-family: 'Work Sans', -apple-system, "SF Pro Text", system-ui, sans-serif !important; }
+  #root { width: 100vw; height: 100vh; display: grid; place-items: center; }
+  *, *::before, *::after { box-sizing: border-box; }
+  button { font-family: inherit; }
+</style>
+<script type="application/json" id="ext-resource-deps">[
+  "https://unpkg.com/react@18.3.1/umd/react.development.js",
+  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js",
+  "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+]</script>
+</head>
+<body>
+<div id="root"></div>
+
+<template id="__bundler_thumbnail" data-bg-color="#0858FF">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#0858FF"/>
+  <rect x="32" y="22" width="36" height="56" rx="6" fill="#fff"/>
+  <rect x="38" y="32" width="24" height="3" rx="1.5" fill="#0858FF"/>
+  <rect x="38" y="40" width="20" height="2.5" rx="1.25" fill="#9AA3B2"/>
+  <circle cx="50" cy="60" r="8" fill="#1CAE6A"/>
+  <path d="M46 60l3 3 6-6" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script>
+// Standalone-bundle shim: rewrite "assets/<name>.png" image src/href URLs to
+// the inlined blob URLs registered on window.__resources by the bundler.
+// This lets the original JSX code (which references string paths) work
+// unchanged in the offline file.
+(function () {
+  function resourceFor(path) {
+    if (!path || !window.__resources) return null;
+    var m = /assets\/([\w-]+)\.png/.exec(String(path));
+    if (!m) return null;
+    var id = 'r_' + m[1].replace(/-/g, '_');
+    return window.__resources[id] || null;
+  }
+  function patchEl(el) {
+    if (!el || el.nodeType !== 1) return;
+    if (el.tagName === 'IMG') {
+      var raw = el.getAttribute('src');
+      var blob = resourceFor(raw);
+      if (blob && el.src !== blob) el.src = blob;
+    }
+  }
+  function scan(root) {
+    if (!root) return;
+    if (root.tagName === 'IMG') patchEl(root);
+    if (root.querySelectorAll) {
+      root.querySelectorAll('img').forEach(patchEl);
+    }
+  }
+  // Initial sweep + observe future mutations.
+  function start() {
+    scan(document.body);
+    new MutationObserver(function (muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var m = muts[i];
+        if (m.type === 'attributes' && m.target && m.target.tagName === 'IMG') {
+          patchEl(m.target);
+        }
+        if (m.addedNodes) for (var j = 0; j < m.addedNodes.length; j++) scan(m.addedNodes[j]);
+      }
+    }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['src'] });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+})();
+</script>
+
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="screens.jsx"></script>
+<script type="text/babel" src="screens-appt.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>

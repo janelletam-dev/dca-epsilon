@@ -1,0 +1,84 @@
+/* =========================================================
+   Doctor Care Anywhere — Design Tokens
+   Sampled from brand assets; Apr 2026
+   ========================================================= */
+:root {
+  /* Brand primitives ------------------------------------- */
+  --dca-blue-600: #004EF8;   /* Primary action / header background */
+  --dca-blue-700: #003FD8;   /* Primary hover */
+  --dca-blue-500: #004FFF;   /* Hero / link accent */
+  --dca-blue-400: #3A7BFF;
+  --dca-blue-100: #E7EFFF;   /* Hover tint, chip bg */
+  --dca-blue-50:  #F1F5FF;
+
+  --dca-navy-900: #061731;   /* Deepest — bottom bar, body text */
+  --dca-navy-800: #081F3F;   /* Footer / mobile nav background */
+  --dca-navy-700: #0E2A5A;
+  --dca-navy-600: #13386E;
+
+  --dca-yellow:   #FFB407;   /* Logo dot — sparingly, accent only */
+  --dca-yellow-700: #D89600;
+
+  --dca-green-600: #0F9D58;  /* Positive / confirm */
+  --dca-green-500: #1CAE6A;
+  --dca-green-100: #E3F6EC;
+
+  --dca-red-600:  #D9364C;   /* Destructive */
+  --dca-red-100:  #FDE7EB;
+
+  --dca-teal-500: #2CC6A9;   /* Secure / "keyhole" */
+
+  /* Neutrals --------------------------------------------- */
+  --dca-grey-0:   #FFFFFF;
+  --dca-grey-50:  #FAFAFA;
+  --dca-grey-100: #F4F4F4;   /* Page background on forms */
+  --dca-grey-200: #E8EAED;
+  --dca-grey-300: #D1D5DB;
+  --dca-grey-400: #9AA3B2;
+  --dca-grey-500: #6B7280;
+  --dca-grey-600: #4B5563;
+  --dca-grey-700: #2D333F;
+  --dca-grey-900: #0B111E;
+
+  /* Semantic --------------------------------------------- */
+  --c-bg:          var(--dca-grey-0);
+  --c-bg-muted:    var(--dca-grey-100);
+  --c-fg:          var(--dca-navy-900);
+  --c-fg-muted:    var(--dca-grey-600);
+  --c-border:      var(--dca-grey-200);
+  --c-border-strong: var(--dca-grey-300);
+  --c-primary:     var(--dca-blue-600);
+  --c-primary-fg:  #FFFFFF;
+  --c-link:        var(--dca-blue-600);
+  --c-on-dark:     #FFFFFF;
+  --c-on-dark-muted: #B8C4DB;
+
+  /* Radii ------------------------------------------------ */
+  --r-xs: 4px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* Spacing (4px base) ---------------------------------- */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px;
+  --s-12: 48px; --s-16: 64px; --s-20: 80px;
+
+  /* Elevation ------------------------------------------- */
+  --shadow-sm:  0 1px 2px rgba(6, 23, 49, 0.06);
+  --shadow-md:  0 4px 12px rgba(6, 23, 49, 0.08);
+  --shadow-lg:  0 16px 32px -8px rgba(6, 23, 49, 0.18);
+  --shadow-focus: 0 0 0 3px rgba(0, 78, 248, 0.28);
+
+  /* Type ------------------------------------------------- */
+  --font-sans: "Work Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-display: "Work Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Breakpoints (reference) ----------------------------- */
+  --bp-mobile: 480px;
+  --bp-tablet: 768px;
+  --bp-desktop: 1024px;
+}
