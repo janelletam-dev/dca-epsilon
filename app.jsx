@@ -83,14 +83,10 @@ function DCAApp() {
       screen = <ConcernScreen go={go} state={state} setState={setState} onClose={close}/>; break;
     case 'attach':
       screen = <AttachScreen go={go} state={state} onClose={close}/>; break;
-    case 'clinician-type':
-      screen = <ClinicianTypeScreen go={go} state={state} setState={setState} onClose={close}/>; break;
     case 'time-of-day':
       screen = <TimeOfDayScreen go={go} state={state} setState={setState} onClose={close}/>; break;
     case 'appt':
       screen = <ApptScreen go={go} state={state} setState={setState} onClose={close} anonymise={CONFIG.anonymise} errorMode={CONFIG.errorMode}/>; break;
-    case 'meet-clinician':
-      screen = <MeetClinicianScreen go={go} state={state} setState={setState} onClose={close}/>; break;
     case 'confirmed':
       screen = <ConfirmedScreen go={go} state={state} persona={CONFIG.persona}/>; break;
     case 'reminder':
